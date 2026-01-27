@@ -3,6 +3,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { checkOrgMembership } from "@/lib/github-admin";
 
 const REQUIRED_DOMAIN = "law.ac.uk";
 const REQUIRED_ORG = "University-of-Law-Computer-Science";
@@ -19,40 +20,19 @@ export async function verifyGithub() {
   if (!user) return { error: "User not found" };
 
   // 1. Check Email Domain
-  // This is a loose check. Ideally we check 'emailVerified' from GitHub API if strictness is needed.
-  // For now, checks the primary email stored in User.
   const email = user.email || "";
   const isEmailValid = email.endsWith(`@${REQUIRED_DOMAIN}`);
 
-  // 2. Check Org Membership
-  const githubAccount = user.accounts.find(
-    (act: any) => act.provider === "github",
-  );
-  if (!githubAccount?.access_token)
-    return { error: "GitHub account not linked or missing token" };
+  // 2. Check Org Membership with more detail
+  const githubUsername = user.githubUsername;
+  let membershipStatus = "none";
 
-  let isOrgMember = false;
-  try {
-    const res = await fetch(
-      `https://api.github.com/user/memberships/orgs/${REQUIRED_ORG}`,
-      {
-        headers: {
-          Authorization: `Bearer ${githubAccount.access_token}`,
-          Accept: "application/vnd.github+json",
-        },
-      },
-    );
-
-    if (res.ok) {
-      const data = await res.json();
-      isOrgMember = data.state === "active";
-    } else {
-      // If 404/403, not a member
-      console.error("GitHub Org check failed:", res.status, await res.text());
-    }
-  } catch (err) {
-    console.error("Error checking GitHub membership:", err);
+  if (githubUsername) {
+    const res = await checkOrgMembership(githubUsername);
+    membershipStatus = res.status;
   }
+
+  const isOrgMember = membershipStatus === "active";
 
   // Update DB
   await prisma.onboardingStatus.upsert({
@@ -75,8 +55,22 @@ export async function verifyGithub() {
     success: true,
     isEmailValid,
     isOrgMember,
-    email, // Return for UI feedback
+    membershipStatus,
+    email,
   };
+}
+
+export async function inviteMeAction() {
+  const session = await auth();
+  if (!session?.user?.id || !session.user.email) return { error: "Not authenticated" };
+
+  const { inviteUserToOrg } = await import("@/lib/github-admin");
+  const res = await inviteUserToOrg(session.user.email);
+
+  if (res.error) return { error: res.error };
+  
+  revalidatePath("/onboarding/github");
+  return { success: true };
 }
 
 export async function confirmDocker() {

@@ -138,3 +138,27 @@ export async function syncCohortTeam(cohortId: string) {
   revalidatePath("/admin/cohorts");
   return { success: true, slug: res.slug };
 }
+
+export async function getCohortProgress() {
+  const session = await auth();
+  if (!session?.user?.cohortId) return null;
+
+  const users = await prisma.user.findMany({
+    where: { cohortId: session.user.cohortId },
+    include: { onboardingStatus: true },
+  });
+
+  if (users.length === 0) return 0;
+
+  let totalProgress = 0;
+  users.forEach((user) => {
+    let steps = 0;
+    if (user.onboardingStatus?.githubVerified) steps++;
+    if (user.onboardingStatus?.orgJoined) steps++;
+    if (user.onboardingStatus?.dockerConfirmed) steps++;
+    if (user.onboardingStatus?.awsEnrolled) steps++;
+    totalProgress += (steps / 4) * 100;
+  });
+
+  return Math.round(totalProgress / users.length);
+}

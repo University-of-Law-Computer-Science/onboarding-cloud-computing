@@ -2,8 +2,8 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle2, XCircle, ExternalLink, RefreshCw } from "lucide-react"
-import { verifyGithub } from "@/actions/onboarding"
+import { CheckCircle2, XCircle, ExternalLink, RefreshCw, MailCheck } from "lucide-react"
+import { verifyGithub, inviteMeAction } from "@/actions/onboarding"
 import { redirect } from "next/navigation"
 
 const ORG_NAME = "University-of-Law-Computer-Science";
@@ -12,25 +12,40 @@ export default async function GithubOnboardingPage() {
     const session = await auth()
     if (!session?.user?.id) redirect("/")
 
-    const status = await prisma.onboardingStatus.findUnique({
+    const user = session.user
+    
+    // Check current state in DB
+    const currentStatus = await prisma.onboardingStatus.findUnique({
         where: { userId: session.user.id },
     })
 
-    const user = session.user
-
-    // Check if fully verified to redirect or show success
-    if (status?.githubVerified && status?.orgJoined) {
+    // If already joined, we're good
+    if (currentStatus?.orgJoined && currentStatus?.githubVerified) {
         redirect("/onboarding")
     }
 
-    const isEmailValid = status?.githubVerified
-    const isOrgMember = status?.orgJoined
-
-    // Server Action wrapper for the form
+    // Server Action wrappers
     async function handleRecheck() {
         "use server"
         await verifyGithub()
     }
+
+    async function handleInvite() {
+        "use server"
+        await inviteMeAction()
+    }
+
+    // For better UX, we'll check the current membership status if not already active in DB
+    let detailedStatus = "none";
+    if (!currentStatus?.orgJoined && user.githubUsername) {
+        const { checkOrgMembership } = await import("@/lib/github-admin");
+        const res = await checkOrgMembership(user.githubUsername);
+        detailedStatus = res.status || "none";
+    }
+
+    const isEmailValid = currentStatus?.githubVerified
+    const isOrgMember = currentStatus?.orgJoined
+    const isPending = detailedStatus === "pending";
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
@@ -89,15 +104,35 @@ export default async function GithubOnboardingPage() {
                             {isOrgMember ? (
                                 <p className="text-sm text-green-600">You are a member of {ORG_NAME}</p>
                             ) : (
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     <p className="text-sm text-muted-foreground">
                                         You must check your membership in the <strong>{ORG_NAME}</strong> organization.
                                     </p>
-                                    <Button variant="outline" size="sm" asChild>
-                                        <a href={`https://github.com/orgs/${ORG_NAME}`} target="_blank" rel="noreferrer">
-                                            Go to Organization <ExternalLink className="h-3 w-3 ml-2" />
-                                        </a>
-                                    </Button>
+                                    
+                                    {isPending ? (
+                                        <div className="bg-amber-50 p-2 rounded-md border border-amber-200">
+                                            <p className="text-xs text-amber-800 font-medium mb-2">Invitation Pending!</p>
+                                            <Button variant="default" size="sm" className="bg-amber-600 hover:bg-amber-700" asChild>
+                                                <a href={`https://github.com/orgs/${ORG_NAME}/invitation`} target="_blank" rel="noreferrer">
+                                                    Accept Invite <ExternalLink className="h-3 w-3 ml-2" />
+                                                </a>
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-wrap gap-2">
+                                            <Button variant="outline" size="sm" asChild>
+                                                <a href={`https://github.com/orgs/${ORG_NAME}`} target="_blank" rel="noreferrer">
+                                                    Go to Organization <ExternalLink className="h-3 w-3 ml-2" />
+                                                </a>
+                                            </Button>
+                                            <form action={handleInvite}>
+                                                <Button size="sm" variant="secondary">
+                                                    <MailCheck className="h-3 w-3 mr-2" />
+                                                    Fix it for me (Send Invite)
+                                                </Button>
+                                            </form>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

@@ -1,7 +1,7 @@
 const ORG_NAME = "University-of-Law-Computer-Science"; // Configurable or env var
 
 export async function createGithubTeam(name: string, description?: string) {
-  const token = process.env.GITHUB_ADMIN_TOKEN;
+  const token = process.env.GH_ADMIN_TOKEN;
 
   // If no token, we just skip (dev mode or manual mode) and return success fake
   if (!token) {
@@ -55,9 +55,9 @@ export async function createGithubTeam(name: string, description?: string) {
 }
 
 export async function addMemberToTeam(slug: string, username: string) {
-  const token = process.env.GITHUB_ADMIN_TOKEN;
+  const token = process.env.GH_ADMIN_TOKEN;
   if (!token) {
-    console.warn("GITHUB_ADMIN_TOKEN not set. Skipping member addition.");
+    console.warn("GH_ADMIN_TOKEN not set. Skipping member addition.");
     return { success: true };
   }
 
@@ -91,3 +91,67 @@ export async function addMemberToTeam(slug: string, username: string) {
     return { error: "Internal Server Error" };
   }
 }
+
+export async function checkOrgMembership(username: string) {
+  const token = process.env.GH_ADMIN_TOKEN;
+  if (!token) return { status: "unknown" };
+
+  try {
+    const res = await fetch(
+      `https://api.github.com/orgs/${ORG_NAME}/memberships/${username}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+      },
+    );
+
+    if (res.status === 200) {
+      const data = await res.json();
+      return { status: data.state }; // 'active' or 'pending'
+    }
+
+    if (res.status === 404) {
+      return { status: "none" };
+    }
+
+    return { status: "error" };
+  } catch (err) {
+    console.error("Error checking org membership:", err);
+    return { status: "error" };
+  }
+}
+
+export async function inviteUserToOrg(email: string) {
+  const token = process.env.GH_ADMIN_TOKEN;
+  if (!token) return { error: "No admin token" };
+
+  try {
+    const res = await fetch(`https://api.github.com/orgs/${ORG_NAME}/invitations`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      body: JSON.stringify({
+        email: email,
+        role: "direct_member",
+      }),
+    });
+
+    if (!res.ok) {
+        const err = await res.text();
+        console.error("Invite error:", err);
+        return { error: "Failed to send invitation" };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("Error inviting user:", err);
+    return { error: "Internal Server Error" };
+  }
+}
+   
