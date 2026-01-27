@@ -33,10 +33,7 @@ export async function joinCohort(token: string) {
   });
 
   // Add to GitHub Team
-  // casting session.user as any to access custom fields if TS complains, mostly it should match extended type if configured properly
-  // but in actions file, if next-auth types aren't global, it might be an issue.
-  // Let's assume session.user includes githubUsername based on auth.ts profile callback.
-  const username = (session.user as any).githubUsername;
+  const username = session.user.githubUsername;
 
   if (username && cohort.githubTeamSlug) {
     await addMemberToTeam(cohort.githubTeamSlug, username);

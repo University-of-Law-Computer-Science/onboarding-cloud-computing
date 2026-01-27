@@ -14,7 +14,7 @@ declare module "next-auth" {
   }
 
   interface User {
-    role?: string;
+    role: string;
     githubUsername?: string | null;
     cohortId?: string | null;
   }

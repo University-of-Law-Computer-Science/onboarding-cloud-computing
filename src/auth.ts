@@ -27,17 +27,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "github") {
+        const email = user.email;
+        if (!email?.endsWith("@law.ac.uk")) {
+          return false;
+        }
+      }
+      return true;
+    },
     async session({ session, user }) {
       if (session.user) {
         // Attach custom fields to session
         // Note: 'user' object in session callback comes from database in database strategy
-        // We'll trust the type extension in next-auth.d.ts (to be created)
+        // We'll trust the type extension in next-auth.d.ts
         session.user.id = user.id;
-        // @ts-ignore
         session.user.role = user.role;
-        // @ts-ignore
         session.user.cohortId = user.cohortId;
-        // @ts-ignore
         session.user.githubUsername = user.githubUsername;
       }
       return session;
