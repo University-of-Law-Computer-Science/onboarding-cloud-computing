@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { CheckCircle2, Circle, ArrowRight } from "lucide-react"
-import { CohortVelocity } from "@/components/cohort-velocity"
 
 async function getOnboardingStatus(userId: string) {
     const status = await prisma.onboardingStatus.findUnique({
@@ -69,7 +68,7 @@ export default async function OnboardingDashboard() {
                 </p>
             </div>
 
-            <CohortVelocity />
+           
 
             <div className="grid gap-8 md:grid-cols-[1fr_300px] lg:grid-cols-[1fr_350px]">
                 <div className="space-y-6">

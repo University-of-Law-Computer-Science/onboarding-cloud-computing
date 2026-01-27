@@ -2,15 +2,19 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CheckCircle2, XCircle, ExternalLink, RefreshCw, MailCheck } from "lucide-react"
-import { verifyGithub, inviteMeAction } from "@/actions/onboarding"
+import { CheckCircle2, XCircle, ExternalLink, RefreshCw } from "lucide-react"
+import { verifyGithub } from "@/actions/onboarding"
 import { redirect } from "next/navigation"
+import { InviteButton } from "@/components/onboarding/invite-button"
 
 const ORG_NAME = "University-of-Law-Computer-Science";
 
 export default async function GithubOnboardingPage() {
     const session = await auth()
     if (!session?.user?.id) redirect("/")
+
+    // Auto-verify on page load to ensure status is up-to-date
+    const verificationResult = await verifyGithub();
 
     const user = session.user
     
@@ -30,14 +34,14 @@ export default async function GithubOnboardingPage() {
         await verifyGithub()
     }
 
-    async function handleInvite() {
-        "use server"
-        await inviteMeAction()
-    }
-
     // For better UX, we'll check the current membership status if not already active in DB
     let detailedStatus = "none";
-    if (!currentStatus?.orgJoined && user.githubUsername) {
+
+    // Use the detailed status from the fresh verification run if available
+    if (verificationResult && 'membershipStatus' in verificationResult) {
+        detailedStatus = verificationResult.membershipStatus || "none";
+    } else if (!currentStatus?.orgJoined && user.githubUsername) {
+        // Fallback if verification didn't run or return status (unlikely with above call)
         const { checkOrgMembership } = await import("@/lib/github-admin");
         const res = await checkOrgMembership(user.githubUsername);
         detailedStatus = res.status || "none";
@@ -125,12 +129,7 @@ export default async function GithubOnboardingPage() {
                                                     Go to Organization <ExternalLink className="h-3 w-3 ml-2" />
                                                 </a>
                                             </Button>
-                                            <form action={handleInvite}>
-                                                <Button size="sm" variant="secondary">
-                                                    <MailCheck className="h-3 w-3 mr-2" />
-                                                    Fix it for me (Send Invite)
-                                                </Button>
-                                            </form>
+                                            <InviteButton />
                                         </div>
                                     )}
                                 </div>
