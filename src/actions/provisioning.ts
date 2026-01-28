@@ -6,7 +6,7 @@ import { createRepoFromTemplate, addCollaborator } from "@/lib/github-admin"
 
 export async function provisionLabForCohort(cohortId: string, labTemplateName: string) {
     const session = await auth()
-    
+
     if (session?.user?.role !== "staff") {
         return { error: "Unauthorized" }
     }
@@ -18,7 +18,7 @@ export async function provisionLabForCohort(cohortId: string, labTemplateName: s
             users: {
                 where: {
                     // Only provision for students who have linked their GitHub
-                    githubUsername: { not: null } 
+                    githubUsername: { not: null }
                 }
             }
         }
@@ -49,12 +49,14 @@ export async function provisionLabForCohort(cohortId: string, labTemplateName: s
             // A. Create Repo
             const createRes = await createRepoFromTemplate(labTemplateName, newRepoName);
             if (createRes.error) {
-                // If it already exists, we might still want to ensure permission is correct, 
-                // but usually the error message will say "already exists".
-                // We'll trust the error for now unless it's strictly "already exists".
-                results.details.push(`  ❌ Create failed: ${createRes.error}`);
-                results.failed++;
-                continue;
+                // If it already exists, we might still want to ensure permission is correct
+                if (createRes.error.includes("already exists") || createRes.error.includes("422")) {
+                    results.details.push(`  ℹ️ Repo already exists, ensuring access...`);
+                } else {
+                    results.details.push(`  ❌ Create failed: ${createRes.error}`);
+                    results.failed++;
+                    continue;
+                }
             }
 
             // B. Add Collaborator
