@@ -17,24 +17,24 @@ export async function POST(req: NextRequest) {
     // This is tricky if username has hyphens.
     // Alternative: We try to match the repo URL or rely on the fact that we might store the repoUrl in User's labSubmissions?
     // But we don't have the repo url stored yet.
-    
+
     // Let's try to match by searching for a user whose githubUsername is part of the string?
     // Or we assume a strict format.
     // For now, let's look up the user by githubUsername if we can deduce it, or just store it raw if we can't link it.
-    
+
     // Better approach: The webhook payload should ideally contain the github_user if available from the workflow context.
     // But standard extraction:
     // parts = repo.split('-')
     // This is unreliable.
-    
+
     // Let's try to find a User who has a GitHub username that matches a segment of the repo name.
     // This is expensive.
-    
+
     // Let's assume the payload sends "github_username" from the trigger actor.
     const githubUsername = body.github_username;
-    
+
     if (!githubUsername) {
-       return NextResponse.json({ error: "Missing github_username" }, { status: 400 });
+      return NextResponse.json({ error: "Missing github_username" }, { status: 400 });
     }
 
     const user = await prisma.user.findFirst({
@@ -55,16 +55,19 @@ export async function POST(req: NextRequest) {
       "05-distributed-systems", "06-consistency", "07-microservices",
       "08-kubernetes", "09-cicd", "10-observability"
     ];
-    
+
     const labSlug = knownLabs.find(slug => repo.includes(slug));
-    
+
     if (!labSlug) {
-       return NextResponse.json({ error: "Unknown Lab" }, { status: 400 });
+      return NextResponse.json({ error: "Unknown Lab" }, { status: 400 });
     }
 
     // 3. Update/Create Submission
     const numericGrade = status === "success" ? (grade || 100) : (grade || 0);
-    const statusString = status === "success" ? "graded" : "failed";
+    // If automated tests pass, set to PENDING_REVIEW for admin approval.
+    // If failed, we can mark as failed immediately or also pending review if we want to allow manual overrides.
+    // For now, let's keep "failed" as is, but "success" -> "PENDING_REVIEW".
+    const statusString = status === "success" ? "PENDING_REVIEW" : "failed";
 
     await prisma.labSubmission.upsert({
       where: {

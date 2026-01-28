@@ -60,7 +60,7 @@ export default async function OnboardingDashboard() {
         <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 delay-150">
             <div className="relative">
                 <div className="absolute -left-10 -top-10 w-32 h-32 bg-primary/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
-                <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+                <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-primary to-secondary">
                     Onboarding Dashboard
                 </h1>
                 <p className="text-muted-foreground mt-2 text-lg">
@@ -74,7 +74,7 @@ export default async function OnboardingDashboard() {
                 <div className="space-y-6">
                     {activeStep ? (
                         <Card className="border-primary/20 shadow-xl shadow-primary/5 overflow-hidden relative">
-                            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
+                            <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
                             <CardHeader className="bg-muted/30 border-b border-white/5">
                                 <div className="flex items-center gap-2 text-primary font-bold mb-1 tracking-wide uppercase text-xs">
                                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground shadow-sm shadow-primary/50">
@@ -110,6 +110,13 @@ export default async function OnboardingDashboard() {
                                     You have successfully onboarded. You can now access all cloud resources.
                                 </CardDescription>
                             </CardHeader>
+                            <CardContent className="pt-0">
+                                <Link href="/labs">
+                                    <Button className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white">
+                                        Access Cloud Labs <ArrowRight className="h-4 w-4" />
+                                    </Button>
+                                </Link>
+                            </CardContent>
                         </Card>
                     )}
 

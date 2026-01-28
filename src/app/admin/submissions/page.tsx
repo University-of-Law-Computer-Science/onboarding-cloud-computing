@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { GradingDialog } from "@/components/admin/grading-dialog";
 
 export default async function SubmissionsPage() {
   const submissions = await prisma.labSubmission.findMany({
@@ -34,13 +35,14 @@ export default async function SubmissionsPage() {
               <TableHead>Status</TableHead>
               <TableHead>Grade</TableHead>
               <TableHead>Repo</TableHead>
+              <TableHead>Actions</TableHead>
               <TableHead>Last Updated</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {submissions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   No submissions yet.
                 </TableCell>
               </TableRow>
@@ -55,22 +57,42 @@ export default async function SubmissionsPage() {
                   </TableCell>
                   <TableCell className="font-mono text-xs">{sub.labSlug}</TableCell>
                   <TableCell>
-                    <Badge variant={sub.status === "graded" ? "default" : "destructive"}>
+                    <Badge variant={
+                      sub.status === "APPROVED" || sub.status === "graded" ? "default" :
+                        sub.status === "PENDING_REVIEW" ? "secondary" : "destructive"
+                    }>
                       {sub.status}
                     </Badge>
                   </TableCell>
                   <TableCell>{sub.grade}%</TableCell>
                   <TableCell>
                     {sub.repoUrl ? (
-                      <a 
-                        href={sub.repoUrl} 
-                        target="_blank" 
+                      <a
+                        href={sub.repoUrl}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-500 hover:underline"
                       >
                         View Code
                       </a>
                     ) : "-"}
+                  </TableCell>
+                  <TableCell>
+                    {sub.status === "PENDING_REVIEW" ? (
+                      <GradingDialog
+                        submissionId={sub.id}
+                        currentGrade={sub.grade}
+                        currentFeedback={sub.feedback}
+                      />
+                    ) : (
+                      <GradingDialog
+                        submissionId={sub.id}
+                        currentGrade={sub.grade}
+                        currentFeedback={sub.feedback}
+                        triggerLabel="Edit"
+                        variant="ghost"
+                      />
+                    )}
                   </TableCell>
                   <TableCell>{sub.updatedAt.toLocaleDateString()} {sub.updatedAt.toLocaleTimeString()}</TableCell>
                 </TableRow>
