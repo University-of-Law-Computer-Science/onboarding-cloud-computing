@@ -154,4 +154,68 @@ export async function inviteUserToOrg(email: string) {
     return { error: "Internal Server Error" };
   }
 }
-   
+export async function createRepoFromTemplate(templateName: string, newRepoName: string) {
+    const token = process.env.GH_ADMIN_TOKEN;
+    if (!token) {
+        console.warn("No token, skipping repo creation");
+        return { success: true, fake: true };
+    }
+
+    try {
+        const res = await fetch(`https://api.github.com/repos/${ORG_NAME}/${templateName}/generate`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+            body: JSON.stringify({
+                owner: ORG_NAME,
+                name: newRepoName,
+                private: true,
+                include_all_branches: false // we just want main usually
+            }),
+        });
+
+        if (!res.ok) {
+            const err = await res.text();
+            console.error(`Failed to create repo ${newRepoName}:`, err);
+            return { error: err };
+        }
+
+        const data = await res.json();
+        return { success: true, repoUrl: data.html_url };
+    } catch (err) {
+        return { error: String(err) };
+    }
+}
+
+export async function addCollaborator(repoName: string, username: string, permission: 'push' | 'pull' | 'admin' = 'push') {
+    const token = process.env.GH_ADMIN_TOKEN;
+    if (!token) return { success: true, fake: true };
+
+    try {
+        const res = await fetch(`https://api.github.com/repos/${ORG_NAME}/${repoName}/collaborators/${username}`, {
+            method: "PUT",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+            body: JSON.stringify({
+                permission
+            }),
+        });
+
+        if (!res.ok) {
+           const err = await res.text();
+           console.error(`Failed to add collaborator ${username} to ${repoName}:`, err);
+           return { error: err };
+        }
+
+        return { success: true };
+    }
+    catch (err) {
+        return { error: String(err) };
+    }
+}   

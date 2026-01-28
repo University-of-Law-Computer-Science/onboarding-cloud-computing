@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { CohortAssigner } from "@/components/admin/cohort-assigner"
 import { ExportButton } from "@/components/admin/export-button"
 import { TeamStatus } from "@/components/admin/team-status"
+import { ProvisioningCard } from "@/components/admin/provisioning-card"
 
 async function getUsers() {
     return await prisma.user.findMany({
@@ -53,8 +54,9 @@ export default async function AdminDashboard() {
                 </div>
             </div>
 
-            <div className="rounded-md border">
-                <Table>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-2 rounded-md border">
+                    <Table>
                     <TableHeader>
                         <TableRow>
                             <TableHead>User</TableHead>
@@ -140,6 +142,12 @@ export default async function AdminDashboard() {
                     </TableBody>
                 </Table>
             </div>
+            
+            <div className="space-y-6">
+                 <ProvisioningCard cohorts={cohorts} />
+                 {/* Add more sidebar widgets here if needed */}
+            </div>
+        </div>
         </div>
     )
 }
