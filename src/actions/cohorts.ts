@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { User, OnboardingStatus } from "@prisma/client";
 
 // Check if user is staff
 async function checkStaff() {
@@ -151,7 +152,7 @@ export async function getCohortProgress() {
   if (users.length === 0) return 0;
 
   let totalProgress = 0;
-  users.forEach((user) => {
+  users.forEach((user: User & { onboardingStatus: OnboardingStatus | null }) => {
     let steps = 0;
     if (user.onboardingStatus?.githubVerified) steps++;
     if (user.onboardingStatus?.orgJoined) steps++;

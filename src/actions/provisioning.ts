@@ -63,6 +63,27 @@ export async function provisionLabForCohort(cohortId: string, labTemplateName: s
                 results.details.push(`  ⚠️ Repo created but failed to add user: ${collabRes.error}`);
                 results.failed++; // Count as fail or partial? Let's say fail for safety
             } else {
+                // C. Record in LabSubmission
+                const ORG = "University-of-Law-Computer-Science";
+                await prisma.labSubmission.upsert({
+                    where: {
+                        userId_labSlug: {
+                            userId: student.id,
+                            labSlug: labTemplateName,
+                        }
+                    },
+                    update: {
+                        repoUrl: `https://github.com/${ORG}/${newRepoName}`,
+                        status: "PROVISIONED",
+                    },
+                    create: {
+                        userId: student.id,
+                        labSlug: labTemplateName,
+                        repoUrl: `https://github.com/${ORG}/${newRepoName}`,
+                        status: "PROVISIONED",
+                    }
+                });
+
                 results.details.push(`  ✅ Success`);
                 results.success++;
             }

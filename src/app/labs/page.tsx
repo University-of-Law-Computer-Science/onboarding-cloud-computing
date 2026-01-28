@@ -1,6 +1,8 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
+import { ExternalLink, Eye } from "lucide-react";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -10,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 const LABS = [
   { id: "01-virtualisation", title: "Lab 1: Virtualisation" },
@@ -45,6 +48,7 @@ export default async function LabsPage() {
               <TableHead>Status</TableHead>
               <TableHead>Grade</TableHead>
               <TableHead>Feedback</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -54,6 +58,7 @@ export default async function LabsPage() {
               let gradeDisplay = "-";
               let feedback = "-";
               let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "outline";
+              const hasRepo = !!sub?.repoUrl;
 
               if (sub) {
                 if (sub.status === "APPROVED" || sub.status === "graded") {
@@ -88,6 +93,25 @@ export default async function LabsPage() {
                   <TableCell className="font-bold">{gradeDisplay}</TableCell>
                   <TableCell className="text-sm text-muted-foreground max-w-md truncate" title={feedback}>
                     {feedback}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {hasRepo && (
+                      <div className="flex justify-end gap-2">
+                        <Link href={`/labs/${lab.id}/repo`}>
+                          <Button variant="outline" size="sm" className="gap-1.5">
+                            <Eye className="h-4 w-4" />
+                            View Repo
+                          </Button>
+                        </Link>
+                        {sub?.repoUrl && (
+                          <a href={sub.repoUrl} target="_blank" rel="noopener noreferrer">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <ExternalLink className="h-4 w-4" />
+                            </Button>
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               );
