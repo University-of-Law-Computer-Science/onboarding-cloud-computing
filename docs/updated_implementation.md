@@ -1,12 +1,13 @@
 # Implementation Plan: Cloud Computing Labs (Org-First Model)
 
-This document outlines the **"Option C"** implementation strategy: a robust, scalable repository model that works immediately without GitHub Classroom but retains 100% compatibility for a future switch.
+This document outlines the **"Option C"** implementation strategy: a robust, scalable repository model that works immediately without GitHub Classroom but retains 100% compatibility for a future switch. It has been enhanced with a comprehensive **Autograding System**.
 
 ## 1. Core Design Principles
 *   ✅ **Classroom-Ready:** Zero rework to switch to GitHub Classroom later.
 *   ✅ **PR-Centric:** Enforces professional workflow (Branch -> PR -> Merge).
 *   ✅ **Automated:** Scripted repo creation and built-in autograding.
 *   ✅ **Secure:** No student admin rights; strict branch protection.
+*   ✅ **Masters-Level Content:** Rigorous learning objectives and assessment criteria.
 
 ## 2. Organization Structure
 We organize the GitHub Organization to keep templates clean and student work isolated.
@@ -27,27 +28,34 @@ github.com/University-of-Law-Computer-Science
 └── scripts/                        # Admin scripts
 ```
 
-## 3. Template Repository Configuration
-Each lab template (`ccds-lab-xx`) serves as the blueprint.
+## 3. Autograding System Architecture
 
-### Repository Settings
-*   **Visibility:** Private
-*   **Template Repository:** ON
-*   **Features:** Disable Issues, Wikis, Projects (keep focus on code).
-*   **Permissions:** Restrict pushing to `main`.
+We have implemented a **Continuous Assessment** pipeline using GitHub Actions and the central Web Application.
 
-### Branch Protection Rules (`main`)
-*   **Require Pull Request:** YES (Enforces submission via PR).
-*   **Require Status Checks:** YES (Ensures autograding runs).
-*   **Require Linear History:** YES.
-*   **Admins Only:** Restrict direct pushes to instructors.
+### 3.1. Workflow
+1.  **Student Push**: Student pushes code to their repository.
+2.  **GitHub Actions**: Triggers `.github/workflows/autograding.yml`.
+3.  **Test Execution**: The workflow runs `tests/run_tests.sh` (customizable per lab).
+4.  **Reporting**:
+    *   If tests pass/fail, the workflow sends a JSON payload via **Webhook** to the Web App.
+    *   Payload: `{ "repo": "...", "status": "success|failure", "github_username": "..." }`
+5.  **Data Storage**: The Web App updates the `LabSubmission` record in the database.
+6.  **Admin Review**: Lecturers view real-time grades in the Admin Dashboard.
+
+### 3.2. Integration Points
+*   **Webhook Endpoint**: `POST /api/webhooks/grading`
+    *   Protected by `GRADING_WEBHOOK_SECRET`.
+    *   Parses repo name to identify User and Lab.
+*   **Database Schema**:
+    *   `LabSubmission` model links `User` and `LabSlug`.
+    *   Stores `grade`, `status`, `repoUrl`, and `feedback`.
 
 ## 4. Student Repository Provisioning
 We use scripts to bulk-create repos for students, mimicking GitHub Classroom's behavior.
 
 ### Automation Script (Bash)
-*   **Naming Convention:** `{Cohort}-{StudentUsername}-{LabName}`
-*   **Action:** Creates private repo from template -> Adds student as `push` collaborator.
+*   **Naming Convention**: `{Cohort}-{StudentUsername}-{LabName}`
+*   **Action**: Creates private repo from template -> Adds student as `push` collaborator -> Injects Autograding Workflow.
 
 ```bash
 # Concept
@@ -55,24 +63,15 @@ gh repo create "$ORG/$REPO" --template "$ORG/templates/$LAB" --private
 gh repo add-collaborator "$ORG/$REPO" "$student" --permission push
 ```
 
-## 5. Student Submission Workflow
-Students cannot push directly to `main`. They must follow a professional flow:
+## 5. Admin Dashboard
+A new Admin UI is available at `/admin/submissions`.
+*   **Features**:
+    *   List all student submissions.
+    *   Filter by Lab or Status (Graded/Failed).
+    *   Direct links to Student Repositories.
+    *   View timestamp of last submission.
 
-1.  **Branch:** `git checkout -b solution`
-2.  **Work:** Commit and push changes to `solution` branch.
-3.  **Submit:** Open a **Pull Request (PR)** from `solution` → `main`.
-4.  **Feedback:** Automated tests run; instructors review code in the PR.
-
-## 6. Autograding (GitHub Actions)
-Grading runs automatically on every PR.
-
-*   **File:** `.github/workflows/autograde.yml`
-*   **Trigger:** On `pull_request` to `main`.
-*   **Details:** Runs tests, generates a grade artifact, and posts status.
-
-## 7. Future Roadmap: Switching to GitHub Classroom
-When ready to adopt GitHub Classroom, **zero rework is required**:
-1.  Link Classroom to the organization.
-2.  Select existing Template Repositories.
-3.  Classroom handles the provisioning (replacing the script from Section 4).
-4.  Grading and submissions remain identical.
+## 6. Future Roadmap
+*   **Granular Feedback**: Update `run_tests.sh` to output detailed JSON feedback (e.g., specific test case failures) and send it to the Web App.
+*   **Plagiarism Detection**: Integrate Moss or similar tools in a separate pipeline.
+*   **GitHub Classroom**: Switch to Classroom for provisioning; the Autograding workflow remains identical.

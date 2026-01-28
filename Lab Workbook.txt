@@ -1,0 +1,374 @@
+# University of Law - MSc Computer Science
+# Module: Cloud Computing and Distributed Systems Fundamentals
+# Laboratory Workbook
+# Academic Year: 2024/25
+
+---
+# Module Overview
+This advanced laboratory workbook is designed for the MSc Computer Science program. It provides a rigorous, hands-on exploration of cloud computing architectures, distributed systems engineering, and DevOps practices. Students will move beyond basic deployment to engineering resilient, scalable, and observable systems.
+
+## Learning Outcomes
+1.  **Evaluate and Implement**: Critically analyse and implement virtualisation and containerisation strategies for diverse workloads.
+2.  **Architect**: Design cloud-native applications using IaaS, PaaS, and SaaS models, adhering to the Well-Architected Framework.
+3.  **Engineer**: Construct distributed systems capable of handling partial failures, consistency challenges, and high concurrency.
+4.  **Orchestrate**: Manage complex microservices architectures using Kubernetes and service meshes.
+5.  **Automate and Observe**: Implement comprehensive CI/CD pipelines and observability stacks (logging, metrics, tracing).
+
+## Assessment Strategy
+*   **Continuous Assessment (70%)**: Portfolio of 10 Lab Submissions (Auto-graded + Code Review).
+*   **Final Project (30%)**: Integrated Capstone Project.
+
+---
+
+# Lab 1: Virtualisation Internals and Performance Analysis
+**Duration:** 3 Hours
+**Difficulty:** Intermediate
+
+## 1. Learning Objectives
+*   Critically evaluate the performance overhead of Type-2 Hypervisors vs. Bare Metal.
+*   Analyse resource isolation mechanisms (cgroups, namespaces) in Linux.
+*   Understand the boot process and kernel-space vs. user-space context switching in VMs.
+
+## 2. Theoretical Background
+Virtualisation abstracts hardware to allow multiple OS instances on a single host. However, this introduces overhead:
+*   **CPU Virtualisation**: Binary translation vs. Hardware-assisted (Intel VT-x/AMD-V).
+*   **Memory Virtualisation**: Shadow Page Tables vs. Nested Paging (EPT/RVI).
+*   **I/O Virtualisation**: Emulation vs. Paravirtualisation (virtio) vs. Passthrough.
+
+## 3. Practical Exercise: The "Overhead" Benchmark
+**Scenario:** You are a systems engineer tasked with deciding whether to migrate a high-frequency trading application to a virtualised environment.
+
+### Step-by-Step Instructions:
+1.  **Baseline (Host)**:
+    *   Compile the provided `sysbench` or `stress-ng` test suite on your local machine.
+    *   Run a CPU-intensive test (calculating primes) and an I/O-intensive test (file writes).
+    *   Record `execution_time`, `sys_cpu`, and `user_cpu`.
+2.  **Virtualisation (VM)**:
+    *   Provision a VirtualBox/VMware VM with Linux (Ubuntu Server).
+    *   Ensure "Hardware Virtualisation" is enabled.
+    *   Run the *exact same* benchmarks.
+3.  **Analysis**:
+    *   Calculate the % overhead for CPU and I/O.
+    *   Investigate `vm_exit` events using `kvm_stat` (if on Linux) or theoretical analysis.
+
+## 4. Assessment Criteria (Autograded)
+*   **Benchmark Script**: Submission of a Bash/Python script that automates the test.
+*   **Data Report**: A Markdown table comparing Host vs. VM metrics.
+*   **Reflection**: A 200-word analysis explaining *why* I/O overhead is typically higher than CPU overhead.
+
+---
+
+# Lab 2: Container Primitives and OCI Standards
+**Duration:** 3 Hours
+**Difficulty:** Intermediate
+
+## 1. Learning Objectives
+*   Deconstruct a container into its core primitives: Namespaces, Cgroups, and OverlayFS.
+*   Build a container image "from scratch" without `docker build` to understand OCI standards.
+*   Manage multi-stage builds for minimal attack surfaces.
+
+## 2. Theoretical Background
+Containers are not "lightweight VMs"; they are isolated processes sharing a kernel.
+*   **Namespaces**: PID (process), NET (network), MNT (filesystem), UTS (hostname).
+*   **Control Groups (cgroups)**: Resource limiting (CPU shares, Memory limits).
+*   **Union Filesystems**: Copy-on-write layering (Overlay2).
+
+## 3. Practical Exercise: "Docker from Scratch"
+**Scenario:** You need to audit a container runtime security policy.
+
+### Step-by-Step Instructions:
+1.  **Manual Isolation**:
+    *   Use `unshare` to create a new process in a separate PID and NET namespace.
+    *   Mount a `proc` filesystem.
+    *   Verify isolation using `ps aux`.
+2.  **Optimised Dockerfile**:
+    *   Create a Node.js/Python app.
+    *   Write a `Dockerfile` using **Multi-stage builds**.
+    *   Stage 1: Build tools (compiler, dependencies).
+    *   Stage 2: Distroless/Alpine runtime (copy only artifacts).
+3.  **Registry Operations**:
+    *   Push to a local registry.
+    *   Inspect image layers using `docker history` or `dive`.
+
+## 4. Assessment Criteria (Autograded)
+*   **Dockerfile Efficiency**: Image size must be <100MB (for Node/Python).
+*   **Security Check**: Scanner (Trivy/Grype) finds 0 Critical/High vulnerabilities.
+*   **Functionality**: Container responds on port 8080.
+
+---
+
+# Lab 3: Cloud Deployment Models (IaaS vs PaaS)
+**Duration:** 3 Hours
+**Difficulty:** Beginner/Intermediate
+
+## 1. Learning Objectives
+*   Compare operational responsibility models (Shared Responsibility).
+*   Deploy infrastructure using Infrastructure-as-Code (Terraform/OpenTofu).
+*   Evaluate "Vendor Lock-in" risks.
+
+## 2. Theoretical Background
+*   **IaaS (AWS EC2)**: You manage OS, patching, runtime. Max flexibility.
+*   **PaaS (Heroku/Beanstalk)**: Vendor manages runtime. Developer focuses on code.
+*   **IaC**: Declarative configuration management.
+
+## 3. Practical Exercise: The "Polyglot" Deployment
+**Scenario:** A startup needs to launch an MVP quickly but plans to scale.
+
+### Step-by-Step Instructions:
+1.  **IaaS Deployment**:
+    *   Launch an EC2 instance (free tier).
+    *   SSH in, install Nginx + App.
+    *   Configure Security Groups (Firewall).
+2.  **PaaS Deployment**:
+    *   Deploy the same app to Heroku or AWS Elastic Beanstalk / App Runner.
+    *   Configure environment variables.
+3.  **IaC Definition**:
+    *   Write a simple Terraform `.tf` file to define the IaaS resources (Instance + Security Group).
+
+## 4. Assessment Criteria (Autograded)
+*   **Terraform Validation**: `terraform validate` passes.
+*   **Availability**: Both endpoints return HTTP 200.
+*   **Comparison**: A table contrasting "Time to Deploy" vs. "Customisation Capability".
+
+---
+
+# Lab 4: High Availability Architecture
+**Duration:** 3 Hours
+**Difficulty:** Advanced
+
+## 1. Learning Objectives
+*   Design for failure: N+1 redundancy, Multi-AZ deployment.
+*   Implement Load Balancing (L4 vs L7).
+*   Configure Auto-scaling policies based on custom metrics.
+
+## 2. Theoretical Background
+*   **CAP Theorem**: Consistency, Availability, Partition Tolerance.
+*   **ELB/ALB**: Round-robin, Least connections, Path-based routing.
+*   **State**: Stateless vs. Stateful applications (Session affinity).
+
+## 3. Practical Exercise: "Kill the Server"
+**Scenario:** Ensure 99.99% availability during a "Chaos Monkey" event.
+
+### Step-by-Step Instructions:
+1.  **Load Balancer**:
+    *   Set up an Application Load Balancer (ALB).
+    *   Target Group: 2 EC2 instances/Containers in different Availability Zones (AZs).
+2.  **Auto-Scaling**:
+    *   Create a Launch Template.
+    *   Set Auto-Scaling Group (ASG) policy: CPU > 50% = +1 instance.
+3.  **Stress Test**:
+    *   Use `k6` or `Apache Bench` to generate load.
+    *   Manually terminate one instance.
+    *   Observe ALB health checks and ASG replacement.
+
+## 4. Assessment Criteria (Autograded)
+*   **Resilience**: Service maintains <5% error rate during instance termination.
+*   **Scaling**: ASG logs show `ScaleOut` event.
+*   **Architecture Diagram**: Submission of a valid Mermaid/PlantUML diagram.
+
+---
+
+# Lab 5: Distributed Systems & Consistency
+**Duration:** 3 Hours
+**Difficulty:** Advanced
+
+## 1. Learning Objectives
+*   Implement a Distributed Counter using a consensus simulation.
+*   Understand Eventual Consistency vs. Strong Consistency.
+*   Handle network partitions and latency.
+
+## 2. Theoretical Background
+*   **ACID vs. BASE**: Atomicity/Consistency vs. Basically Available/Soft-state/Eventual.
+*   **Raft/Paxos**: Consensus algorithms.
+*   **Logical Clocks**: Lamport timestamps, Vector clocks.
+
+## 3. Practical Exercise: The "Split-Brain" Chat
+**Scenario:** Build a chat system that survives network cuts.
+
+### Step-by-Step Instructions:
+1.  **Node Implementation**:
+    *   Write a Python/Go script representing a node.
+    *   Nodes communicate via UDP/TCP.
+2.  **Consistency Mode**:
+    *   Implement "Eventual Consistency": Messages propagate via gossip.
+    *   Simulate "Partition": Block traffic between Node A and Node B.
+3.  **Conflict Resolution**:
+    *   Send conflicting messages.
+    *   Implement "Last Write Wins" (LWW) or Vector Clocks to resolve order.
+
+## 4. Assessment Criteria (Autograded)
+*   **Convergence**: All nodes eventually contain the same message log.
+*   **Partition Handling**: System does not crash when link fails.
+*   **Test Suite**: Unit tests for the conflict resolution logic.
+
+---
+
+# Lab 6: Microservices & API Gateway
+**Duration:** 3 Hours
+**Difficulty:** Intermediate
+
+## 1. Learning Objectives
+*   Decompose a monolith into microservices (User Service, Order Service).
+*   Implement API Gateway pattern (Reverse Proxy, Auth, Rate Limiting).
+*   Service Discovery.
+
+## 2. Theoretical Background
+*   **Bounded Contexts**: Domain-Driven Design (DDD).
+*   **Sync vs Async**: REST/gRPC vs. Message Queues.
+*   **Strangler Fig Pattern**: Migrating legacy apps.
+
+## 3. Practical Exercise: E-Commerce Backend
+**Scenario:** Break down a monolithic shop API.
+
+### Step-by-Step Instructions:
+1.  **Service Split**:
+    *   Create `auth-service` (JWT issuance).
+    *   Create `product-service` (CRUD).
+2.  **API Gateway**:
+    *   Use Nginx or a lightweight Gateway (e.g., Kong, or a custom Node.js proxy).
+    *   Route `/auth/*` -> Auth Service.
+    *   Route `/products/*` -> Product Service.
+    *   Enforce JWT verification at the Gateway.
+3.  **Inter-service Communication**:
+    *   Product service calls Auth service to validate admin rights (synchronous HTTP).
+
+## 4. Assessment Criteria (Autograded)
+*   **API Tests**: Postman/Newman collection passes all endpoints.
+*   **Security**: Direct access to backend services (bypassing Gateway) is blocked (simulated).
+*   **Separation**: Services have separate databases (or schemas).
+
+---
+
+# Lab 7: Message Queues & Event-Driven Architecture
+**Duration:** 3 Hours
+**Difficulty:** Advanced
+
+## 1. Learning Objectives
+*   Decouple services using Message Queues (RabbitMQ/SQS).
+*   Implement "Fan-out" and "Work Queue" patterns.
+*   Handle "Dead Letter Queues" (DLQ).
+
+## 2. Theoretical Background
+*   **Pub/Sub**: Publishers don't know Subscribers.
+*   **Idempotency**: Handling duplicate message delivery.
+*   **Durability**: Persistent vs. Transient messages.
+
+## 3. Practical Exercise: Order Processing Pipeline
+**Scenario:** Handle Black Friday traffic spikes without crashing the database.
+
+### Step-by-Step Instructions:
+1.  **Setup**:
+    *   Spin up RabbitMQ/Redis container.
+2.  **Producer (API)**:
+    *   Accept Order -> Push to Queue -> Return "202 Accepted".
+3.  **Consumer (Worker)**:
+    *   Listen to Queue -> Process Payment (simulated) -> Write to DB.
+    *   Simulate failure (random 10% crash) -> Ensure message returns to queue (NACK).
+
+## 4. Assessment Criteria (Autograded)
+*   **Throughput**: System handles 1000 req/sec ingestion.
+*   **Reliability**: Zero lost orders despite worker crashes.
+*   **Idempotency Check**: Re-processing same message doesn't duplicate DB entry.
+
+---
+
+# Lab 8: Kubernetes Orchestration
+**Duration:** 3 Hours
+**Difficulty:** Advanced
+
+## 1. Learning Objectives
+*   Write declarative YAML manifests (Deployments, Services, Ingress).
+*   Manage ConfigMaps and Secrets.
+*   Perform Rolling Updates and Rollbacks.
+
+## 2. Theoretical Background
+*   **Control Plane**: API Server, Scheduler, Controller Manager, etcd.
+*   **Data Plane**: Kubelet, Kube-proxy, Pods.
+*   **Reconciliation Loop**: Current State -> Desired State.
+
+## 3. Practical Exercise: K8s Deployment
+**Scenario:** Deploy the microservices from Lab 6 to a cluster.
+
+### Step-by-Step Instructions:
+1.  **Cluster**: Use Minikube, Kind, or k3s.
+2.  **Manifests**:
+    *   Create `deployment.yaml` (Replicas=3).
+    *   Create `service.yaml` (ClusterIP).
+    *   Create `ingress.yaml` (Nginx Ingress Controller).
+3.  **Operation**:
+    *   Update image version v1 -> v2.
+    *   Watch `kubectl rollout status`.
+    *   Undo rollout.
+
+## 4. Assessment Criteria (Autograded)
+*   **Linting**: `kubeval` or `kube-linter` passes.
+*   **Health**: All pods `Running`, Endpoints populated.
+*   **Self-Healing**: Delete a pod -> New one starts automatically.
+
+---
+
+# Lab 9: CI/CD Pipelines
+**Duration:** 3 Hours
+**Difficulty:** Intermediate
+
+## 1. Learning Objectives
+*   Build a complete CI/CD pipeline using GitHub Actions.
+*   Implement Linting, Testing, Building, and Pushing.
+*   Use Secrets management for credentials.
+
+## 2. Theoretical Background
+*   **CI**: Continuous Integration (Merge often, test automatically).
+*   **CD**: Continuous Delivery (Ready to deploy) vs. Deployment (Auto-deploy).
+*   **Pipeline as Code**: YAML workflow definitions.
+
+## 3. Practical Exercise: "Commit to Cloud"
+**Scenario:** Automate the software lifecycle.
+
+### Step-by-Step Instructions:
+1.  **Workflow File**: Create `.github/workflows/main.yml`.
+2.  **Jobs**:
+    *   `test`: Run unit tests.
+    *   `build`: Build Docker image.
+    *   `push`: Push to Docker Hub / GHCR (only on `main` branch).
+3.  **Protection**:
+    *   Fail pipeline if tests fail.
+    *   Use GitHub Secrets for Registry Password.
+
+## 4. Assessment Criteria (Autograded)
+*   **Automation**: Push to branch triggers run.
+*   **Artifact**: Docker image exists in registry with correct tag (SHA).
+*   **Status Badge**: README displays "Passing" badge.
+
+---
+
+# Lab 10: Observability & Monitoring
+**Duration:** 3 Hours
+**Difficulty:** Intermediate
+
+## 1. Learning Objectives
+*   Instrument code with Prometheus metrics (Counters, Gauges, Histograms).
+*   Visualise data in Grafana.
+*   Implement Structured Logging.
+
+## 2. Theoretical Background
+*   **Three Pillars**: Logs (Events), Metrics (Aggregates), Traces (Request flow).
+*   **Pull vs Push**: Prometheus (Pull) vs. Datadog (Push).
+*   **RED Method**: Rate, Errors, Duration.
+
+## 3. Practical Exercise: "The Dashboard"
+**Scenario:** You are on-call. You need to know if the system is slow.
+
+### Step-by-Step Instructions:
+1.  **Instrumentation**:
+    *   Add `prom-client` (Node) or `prometheus_client` (Python) to your app.
+    *   Expose `/metrics` endpoint.
+2.  **Infrastructure**:
+    *   Deploy Prometheus and Grafana (using Docker Compose).
+    *   Configure `prometheus.yml` to scrape your app.
+3.  **Visualisation**:
+    *   Create a Grafana Dashboard showing: Requests/Sec, Error Rate, and P95 Latency.
+
+## 4. Assessment Criteria (Autograded)
+*   **Metric Availability**: `/metrics` returns valid PromQL format.
+*   **Dashboard**: JSON export of Grafana dashboard includes at least 3 panels.
+*   **Alerting**: Define a simple alert rule (e.g., "High Error Rate").

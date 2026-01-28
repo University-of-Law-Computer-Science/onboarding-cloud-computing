@@ -48,7 +48,7 @@ export default async function AwsOnboardingPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Enrollment Steps</CardTitle>
-                    <CardDescription>Join your cohort's AWS environment.</CardDescription>
+                    <CardDescription>Join your cohort&apos;s AWS environment.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
 
@@ -90,7 +90,7 @@ export default async function AwsOnboardingPage() {
                         <div className="flex items-center space-x-2">
                             <Checkbox id="confirm" required />
                             <Label htmlFor="confirm" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                I have logged into AWS Academy and can access the "Learner Verification" course.
+                                I have logged into AWS Academy and can access the &quot;Learner Verification&quot; course.
                             </Label>
                         </div>
                         <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={!academyLink}>

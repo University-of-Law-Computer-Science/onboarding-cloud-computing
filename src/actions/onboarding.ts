@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { checkOrgMembership } from "@/lib/github-admin";
 
 const REQUIRED_DOMAIN = "law.ac.uk";
-const REQUIRED_ORG = "University-of-Law-Computer-Science";
+// const REQUIRED_ORG = "University-of-Law-Computer-Science";
 
 export async function verifyGithub() {
   const session = await auth();

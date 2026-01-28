@@ -18,23 +18,23 @@ export function InviteButton() {
                 } else {
                     toast.success("Invitation sent! Check your email.")
                 }
-            } catch (error) {
+            } catch {
                 toast.error("Failed to send invitation")
             }
         })
     }
 
     return (
-        <Button 
-            size="sm" 
-            variant="secondary" 
+        <Button
+            size="sm"
+            variant="secondary"
             onClick={handleInvite}
             disabled={isPending}
         >
             {isPending ? (
-                 <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
             ) : (
-                 <MailCheck className="h-3 w-3 mr-2" />
+                <MailCheck className="h-3 w-3 mr-2" />
             )}
             {isPending ? "Sending..." : "Fix it for me (Send Invite)"}
         </Button>

@@ -56,7 +56,7 @@ export function ProvisioningCard({ cohorts }: { cohorts: Cohort[] }) {
                     ])
                     toast.success("Provisioning job finished")
                 }
-            } catch (e) {
+            } catch {
                 toast.error("An unexpected error occurred")
             }
         })
@@ -106,9 +106,9 @@ export function ProvisioningCard({ cohorts }: { cohorts: Cohort[] }) {
                     </Select>
                 </div>
 
-                <Button 
-                    className="w-full" 
-                    onClick={handleRun} 
+                <Button
+                    className="w-full"
+                    onClick={handleRun}
                     disabled={isPending || !selectedCohort || !selectedLab}
                 >
                     {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

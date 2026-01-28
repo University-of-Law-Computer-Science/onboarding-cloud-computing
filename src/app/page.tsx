@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Github, CheckCircle2, Cloud, Terminal } from "lucide-react"
+import { ArrowRight, Github, Cloud, Terminal } from "lucide-react"
 import { auth, signIn } from "@/auth"
 import { redirect } from "next/navigation"
 
@@ -14,8 +14,8 @@ export default async function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background relative overflow-hidden">
       {/* Background Gradients */}
-      <div className="absolute top-0 -left-64 w-[500px] h-[500px] bg-primary/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
-      <div className="absolute bottom-0 -right-64 w-[500px] h-[500px] bg-secondary/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
+      <div className="absolute top-0 -left-64 w-125 h-[5h-125primary/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
+      <div className="absolute bottom-0 -right-64 w-125 h-125 bg-secondary/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 pt-24 pb-16 md:pt-32 md:pb-24 flex flex-col items-center text-center relative z-10">
@@ -25,7 +25,7 @@ export default async function Home() {
 
         <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl md:text-7xl mb-6 max-w-4xl">
           <span className="block text-foreground">Next-Gen Cloud Labs for</span>
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-secondary animate-gradient-x">
+          <span className="bg-clip-text text-transparent bg-linear-to-r from-primary via-purple-500 to-secondary animate-gradient-x">
             Future Innovators
           </span>
         </h1>
@@ -61,7 +61,7 @@ export default async function Home() {
         <div className="grid gap-8 md:grid-cols-3">
           {/* Card 1 */}
           <div className="group relative overflow-hidden rounded-2xl border bg-background/50 backdrop-blur-sm p-8 transition-all hover:shadow-xl hover:-translate-y-1 text-center">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-linear-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative z-10 flex flex-col items-center">
               <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors mx-auto">
                 <Github className="h-6 w-6" />
@@ -75,7 +75,7 @@ export default async function Home() {
 
           {/* Card 2 */}
           <div className="group relative overflow-hidden rounded-2xl border bg-background/50 backdrop-blur-sm p-8 transition-all hover:shadow-xl hover:-translate-y-1 text-center">
-            <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-linear-to-br from-secondary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative z-10 flex flex-col items-center">
               <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-secondary/10 text-secondary group-hover:bg-secondary group-hover:text-secondary-foreground transition-colors mx-auto">
                 <Terminal className="h-6 w-6" />
@@ -89,7 +89,7 @@ export default async function Home() {
 
           {/* Card 3 */}
           <div className="group relative overflow-hidden rounded-2xl border bg-background/50 backdrop-blur-sm p-8 transition-all hover:shadow-xl hover:-translate-y-1 text-center">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-linear-to-br from-blue-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative z-10 flex flex-col items-center">
               <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors mx-auto">
                 <Cloud className="h-6 w-6" />

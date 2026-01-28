@@ -3,8 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgres"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
 }
 
 model User {
@@ -22,6 +21,7 @@ model User {
   cohortId        String?
   cohort          Cohort?   @relation(fields: [cohortId], references: [id])
   onboardingStatus OnboardingStatus?
+  labSubmissions   LabSubmission[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -82,4 +82,20 @@ model OnboardingStatus {
   updatedAt       DateTime @updatedAt
   
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LabSubmission {
+  id        String   @id @default(cuid())
+  userId    String
+  labSlug   String
+  repoUrl   String?
+  grade     Int?
+  feedback  String?
+  status    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, labSlug])
 }

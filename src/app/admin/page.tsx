@@ -8,7 +8,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle2, Circle, Users } from "lucide-react"
+import { CheckCircle2, Circle, Users, GraduationCap } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { CohortAssigner } from "@/components/admin/cohort-assigner"
@@ -16,7 +16,27 @@ import { ExportButton } from "@/components/admin/export-button"
 import { TeamStatus } from "@/components/admin/team-status"
 import { ProvisioningCard } from "@/components/admin/provisioning-card"
 
-async function getUsers() {
+interface UserData {
+    id: string
+    name: string | null
+    email: string | null
+    role: string
+    cohortId: string | null
+    onboardingStatus: {
+        githubVerified: boolean
+        orgJoined: boolean
+        dockerConfirmed: boolean
+        awsEnrolled: boolean
+    } | null
+}
+
+interface CohortData {
+    id: string
+    name: string
+    githubTeamSlug: string
+}
+
+async function getUsers(): Promise<UserData[]> {
     return await prisma.user.findMany({
         // where: { role: "student" }, // Show all users (staff included) for testing
         include: { onboardingStatus: true },
@@ -24,7 +44,7 @@ async function getUsers() {
     })
 }
 
-async function getCohorts() {
+async function getCohorts(): Promise<CohortData[]> {
     return await prisma.cohort.findMany({
         where: { active: true },
         select: { id: true, name: true, githubTeamSlug: true },
@@ -50,6 +70,11 @@ export default async function AdminDashboard() {
                             <Users className="h-4 w-4" /> Manage Cohorts
                         </Button>
                     </Link>
+                    <Link href="/admin/submissions">
+                        <Button variant="outline" className="gap-2">
+                            <GraduationCap className="h-4 w-4" /> Lab Submissions
+                        </Button>
+                    </Link>
                     <ExportButton />
                 </div>
             </div>
@@ -57,97 +82,97 @@ export default async function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2 rounded-md border">
                     <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>User</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Email</TableHead>
-                            <TableHead>Cohort</TableHead>
-                            <TableHead className="text-center">GitHub</TableHead>
-                            <TableHead className="text-center">Org Member</TableHead>
-                            <TableHead className="text-center">Docker</TableHead>
-                            <TableHead className="text-center">AWS</TableHead>
-                            <TableHead className="text-right">Progress</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {users.length === 0 ? (
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
-                                    No users found.
-                                </TableCell>
+                                <TableHead>User</TableHead>
+                                <TableHead>Role</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Cohort</TableHead>
+                                <TableHead className="text-center">GitHub</TableHead>
+                                <TableHead className="text-center">Org Member</TableHead>
+                                <TableHead className="text-center">Docker</TableHead>
+                                <TableHead className="text-center">AWS</TableHead>
+                                <TableHead className="text-right">Progress</TableHead>
                             </TableRow>
-                        ) : (
-                            users.map((user: any) => {
-                                const s = user.onboardingStatus
-                                const github = s?.githubVerified
-                                const org = s?.orgJoined
-                                const docker = s?.dockerConfirmed
-                                const aws = s?.awsEnrolled
+                        </TableHeader>
+                        <TableBody>
+                            {users.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                        No users found.
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                users.map((user: UserData) => {
+                                    const s = user.onboardingStatus
+                                    const github = s?.githubVerified
+                                    const org = s?.orgJoined
+                                    const docker = s?.dockerConfirmed
+                                    const aws = s?.awsEnrolled
 
-                                // Calculate rough percentage
-                                const steps = [github, org, docker, aws]
-                                const completed = steps.filter(Boolean).length
-                                const percent = Math.round((completed / 4) * 100)
+                                    // Calculate rough percentage
+                                    const steps = [github, org, docker, aws]
+                                    const completed = steps.filter(Boolean).length
+                                    const percent = Math.round((completed / 4) * 100)
 
-                                return (
-                                    <TableRow key={user.id}>
-                                        <TableCell className="font-medium">
-                                            <div className="flex items-center gap-2">
-                                                {user.name || "Unknown"}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant={user.role === "staff" ? "default" : "secondary"}>
-                                                {user.role}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>{user.email}</TableCell>
-                                        <TableCell>
-                                            <CohortAssigner
-                                                userId={user.id}
-                                                currentCohortId={user.cohortId}
-                                                cohorts={cohorts}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <div className="flex flex-col gap-1 items-center">
-                                                <StatusIcon status={github} />
-                                                {user.cohortId && (
-                                                    <TeamStatus
-                                                        userId={user.id}
-                                                        teamSlug={cohorts.find((c: any) => c.id === user.cohortId)?.githubTeamSlug || ""}
-                                                    />
-                                                )}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <StatusIcon status={org} />
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <StatusIcon status={docker} />
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <StatusIcon status={aws} />
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Badge variant={percent === 100 ? "default" : "secondary"}>
-                                                {percent}%
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                )
-                            })
-                        )}
-                    </TableBody>
-                </Table>
+                                    return (
+                                        <TableRow key={user.id}>
+                                            <TableCell className="font-medium">
+                                                <div className="flex items-center gap-2">
+                                                    {user.name || "Unknown"}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant={user.role === "staff" ? "default" : "secondary"}>
+                                                    {user.role}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>{user.email}</TableCell>
+                                            <TableCell>
+                                                <CohortAssigner
+                                                    userId={user.id}
+                                                    currentCohortId={user.cohortId}
+                                                    cohorts={cohorts}
+                                                />
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <div className="flex flex-col gap-1 items-center">
+                                                    <StatusIcon status={github} />
+                                                    {user.cohortId && (
+                                                        <TeamStatus
+                                                            userId={user.id}
+                                                            teamSlug={cohorts.find((c) => c.id === user.cohortId)?.githubTeamSlug || ""}
+                                                        />
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <StatusIcon status={org} />
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <StatusIcon status={docker} />
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <StatusIcon status={aws} />
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Badge variant={percent === 100 ? "default" : "secondary"}>
+                                                    {percent}%
+                                                </Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                })
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                <div className="space-y-6">
+                    <ProvisioningCard cohorts={cohorts} />
+                    {/* Add more sidebar widgets here if needed */}
+                </div>
             </div>
-            
-            <div className="space-y-6">
-                 <ProvisioningCard cohorts={cohorts} />
-                 {/* Add more sidebar widgets here if needed */}
-            </div>
-        </div>
         </div>
     )
 }

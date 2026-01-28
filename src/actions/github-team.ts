@@ -29,7 +29,7 @@ export async function checkTeamMembership(userId: string) {
   }
 
   const githubAccount = user.accounts.find(
-    (act: any) => act.provider === "github",
+    (act) => act.provider === "github",
   );
   if (!githubAccount?.access_token)
     return { error: "GitHub account not linked" };

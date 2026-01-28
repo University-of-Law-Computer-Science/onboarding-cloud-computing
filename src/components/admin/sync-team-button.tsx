@@ -18,7 +18,7 @@ export function SyncTeamButton({ cohortId }: { cohortId: string }) {
             } else {
                 toast.success("GitHub Team Synced")
             }
-        } catch (err) {
+        } catch {
             toast.error("An error occurred")
         } finally {
             setLoading(false)

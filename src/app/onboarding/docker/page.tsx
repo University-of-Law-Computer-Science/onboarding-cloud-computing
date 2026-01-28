@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { ExternalLink, Terminal } from "lucide-react"
+import { Terminal } from "lucide-react"
 import { confirmDocker } from "@/actions/onboarding"
 import { redirect } from "next/navigation"
 
@@ -82,7 +82,7 @@ export default async function DockerOnboardingPage() {
                             docker run hello-world
                         </code>
                         <p className="text-sm text-muted-foreground mt-2">
-                            If working, you will see "Hello from Docker!"
+                            If working, you will see &quot;Hello from Docker!&quot;
                         </p>
                     </div>
 
@@ -90,7 +90,7 @@ export default async function DockerOnboardingPage() {
                         <div className="flex items-center space-x-2">
                             <Checkbox id="confirm" required />
                             <Label htmlFor="confirm" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                I have installed Docker and verified it with the "hello-world" command.
+                                I have installed Docker and verified it with the &quot;hello-world&quot; command.
                             </Label>
                         </div>
                         <Button type="submit" size="lg" className="w-full sm:w-auto">

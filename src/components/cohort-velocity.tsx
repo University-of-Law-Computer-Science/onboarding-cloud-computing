@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { getCohortProgress } from "@/actions/cohorts"
-import { Progress } from "@/components/ui/progress"
+// import { Progress } from "@/components/ui/progress"
 import { Users } from "lucide-react"
 
 export function CohortVelocity() {

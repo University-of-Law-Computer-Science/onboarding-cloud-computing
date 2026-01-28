@@ -63,7 +63,7 @@ export default async function GithubOnboardingPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Verification Steps</CardTitle>
-                    <CardDescription>Click "Check Status" to verify progress.</CardDescription>
+                    <CardDescription>Click &quot;Check Status&quot; to verify progress.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
 

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select"
 import { assignStudentToCohort } from "@/actions/cohorts"
 import { useState } from "react"
-import { toast } from "sonner" // Assuming sonner or use standard alert if toast not installed, falling back to simple alert or nothing for now. Actually, let's assume no toast lib yet, just basic optimistic UI or reload.
+// import { toast } from "sonner" // Assuming sonner or use standard alert if toast not installed, falling back to simple alert or nothing for now. Actually, let's assume no toast lib yet, just basic optimistic UI or reload.
 
 export function CohortAssigner({
     userId,
@@ -39,7 +39,7 @@ export function CohortAssigner({
             onValueChange={handleValueChange}
             disabled={isPending}
         >
-            <SelectTrigger className="w-[140px] h-8 text-xs">
+            <SelectTrigger className="w-35 h-8 text-xs">
                 <SelectValue placeholder="Assign Cohort" />
             </SelectTrigger>
             <SelectContent>
