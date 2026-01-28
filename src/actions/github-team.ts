@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { Account } from "@prisma/client";
 
 const ORG_NAME = "University-of-Law-Computer-Science";
 
@@ -29,7 +30,7 @@ export async function checkTeamMembership(userId: string) {
   }
 
   const githubAccount = user.accounts.find(
-    (act) => act.provider === "github",
+    (act: Account) => act.provider === "github",
   );
   if (!githubAccount?.access_token)
     return { error: "GitHub account not linked" };
