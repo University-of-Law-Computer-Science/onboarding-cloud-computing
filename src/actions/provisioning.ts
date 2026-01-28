@@ -67,11 +67,16 @@ export async function provisionLabForCohort(cohortId: string, labTemplateName: s
             } else {
                 // C. Record in LabSubmission
                 const ORG = "University-of-Law-Computer-Science";
+
+                // Fix: Map labTemplateName (e.g., "ccds-lab-03-cloud-models") to simple labSlug (e.g., "03-cloud-models")
+                // Assumption: template name format is always "ccds-lab-{slug}" or we strip "ccds-lab-"
+                const labSlug = labTemplateName.replace("ccds-lab-", "");
+
                 await prisma.labSubmission.upsert({
                     where: {
                         userId_labSlug: {
                             userId: student.id,
-                            labSlug: labTemplateName,
+                            labSlug: labSlug,
                         }
                     },
                     update: {
@@ -80,7 +85,7 @@ export async function provisionLabForCohort(cohortId: string, labTemplateName: s
                     },
                     create: {
                         userId: student.id,
-                        labSlug: labTemplateName,
+                        labSlug: labSlug,
                         repoUrl: `https://github.com/${ORG}/${newRepoName}`,
                         status: "PROVISIONED",
                     }
