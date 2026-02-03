@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Github, Cloud, Terminal } from "lucide-react"
+import { ArrowRight, Cloud, GitBranch, Terminal } from "lucide-react"
 import { auth, signIn } from "@/auth"
 import { redirect } from "next/navigation"
 
@@ -44,7 +44,7 @@ export default async function Home() {
             className="w-full sm:w-auto"
           >
             <Button size="lg" className="w-full gap-2 text-base h-12 shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-all">
-              <Github className="h-5 w-5" />
+
               Sign in with GitHub
             </Button>
           </form>
@@ -64,7 +64,7 @@ export default async function Home() {
             <div className="absolute inset-0 bg-linear-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative z-10 flex flex-col items-center">
               <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors mx-auto">
-                <Github className="h-6 w-6" />
+                <GitBranch className="h-6 w-6" />
               </div>
               <h3 className="text-xl font-bold mb-2">Instant Identity</h3>
               <p className="text-muted-foreground">

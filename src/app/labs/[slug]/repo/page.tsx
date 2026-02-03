@@ -1,24 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { FileTree } from "@/components/repo/FileTree";
 import { CodeViewer } from "@/components/repo/CodeViewer";
-import { RepoAnalytics } from "@/components/repo/RepoAnalytics";
 import { CollaborativeFeed } from "@/components/repo/CollaborativeFeed";
+import { FileTree } from "@/components/repo/FileTree";
+import { RepoAnalytics } from "@/components/repo/RepoAnalytics";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
-  Github,
-  Code2,
   BarChart3,
-  Users2,
+  Code2,
+  LayoutGrid,
   Search,
-  LayoutGrid
+  Users2
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { motion, AnimatePresence } from "framer-motion";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function RepoViewerPage() {
   const { slug } = useParams();
@@ -80,7 +79,7 @@ export default function RepoViewerPage() {
           </Button>
           <div>
             <h1 className="text-lg font-bold flex items-center gap-2">
-              <Github className="h-5 w-5" />
+
               {repoName}
             </h1>
             <p className="text-xs text-muted-foreground font-mono">{slug}</p>
@@ -96,7 +95,7 @@ export default function RepoViewerPage() {
           </div>
           <a href={repoUrl || "#"} target="_blank" rel="noopener noreferrer">
             <Button size="sm" className="gap-2">
-              <Github className="h-4 w-4" />
+
               GitHub
             </Button>
           </a>
