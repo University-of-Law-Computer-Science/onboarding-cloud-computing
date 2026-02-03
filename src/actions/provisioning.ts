@@ -3,6 +3,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { createRepoFromTemplate, addCollaborator } from "@/lib/github-admin"
+import { LABS } from "@/lib/labs"
 
 export async function provisionLabForCohort(cohortId: string, labTemplateName: string) {
     const session = await auth()
@@ -68,9 +69,12 @@ export async function provisionLabForCohort(cohortId: string, labTemplateName: s
                 // C. Record in LabSubmission
                 const ORG = "University-of-Law-Computer-Science";
 
-                // Fix: Map labTemplateName (e.g., "ccds-lab-03-cloud-models") to simple labSlug (e.g., "03-cloud-models")
-                // Assumption: template name format is always "ccds-lab-{slug}" or we strip "ccds-lab-"
-                const labSlug = labTemplateName.replace("ccds-lab-", "");
+                // Fix: Map labTemplateName to simple labSlug reliably
+                // Try to find a matching ID from our known LABS list
+                const matchingLab = LABS.find(l => labTemplateName.includes(l.id));
+                const labSlug = matchingLab ? matchingLab.id : labTemplateName.replace("ccds-lab-", "").trim();
+
+                console.log(`DEBUG: Provisioning lab. Template: '${labTemplateName}' -> Slug: '${labSlug}'`);
 
                 await prisma.labSubmission.upsert({
                     where: {
